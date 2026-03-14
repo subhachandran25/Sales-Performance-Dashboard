@@ -1,5 +1,7 @@
 streamlit
 pandas
 plotly
-faker
 scikit-learn
+seaborn
+matplotlib
+faker
