@@ -47,13 +47,12 @@ with tab_home:
     
     col4, col5, col6 = st.columns(3)
     col4.plotly_chart(px.pie(data, names='Region', values='Total_Revenue', title="Revenue Share"), use_container_width=True)
-        # Pre-aggregate the data to ensure one row per Sales_Manager
-   df_stacked = data.groupby(['Sales_Manager_Name', 'Region'])['Deals_Closed'].sum().reset_index()
     
-    # Now use the aggregated dataframe for the chart
-    fig_stacked = px.bar(df_stacked, x='Sales_Manager', y='Deals_Closed', 
-                         color='Region', title="Deals Closed (Stacked)", barmode='stack')
+    # --- FIXED STACKED BAR CHART ---
+    df_stacked = data.groupby(['Sales_Manager_Name', 'Region'])['Deals_Closed'].sum().reset_index()
+    fig_stacked = px.bar(df_stacked, x='Sales_Manager_Name', y='Deals_Closed', color='Region', title="Deals Closed (Stacked)", barmode='stack')
     col5.plotly_chart(fig_stacked, use_container_width=True)
+    
     col6.plotly_chart(px.line(data, x='Sales_Rep_Name', y='Total_Revenue', title="Revenue Trend"), use_container_width=True)
 
 # --- DESCRIPTIVE PAGE ---
