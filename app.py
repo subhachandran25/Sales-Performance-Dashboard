@@ -1,10 +1,7 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
-from sklearn.tree import DecisionTreeRegressor
 
-st.set_page_config(layout="wide", page_title="Sales Intelligence")
+st.set_page_config(layout="wide")
 
 @st.cache_data
 def load_data():
@@ -12,15 +9,19 @@ def load_data():
 
 df = load_data()
 
-# --- SIDEBAR FILTERS ---
+# --- DEBUGGING: PRINT COLUMN NAMES ---
+st.write("### Debug: Your CSV Column Names are:")
+st.write(df.columns.tolist())
+# -------------------------------------
 
-st.sidebar.header("Global Filters")
+# Sidebar Filters
 region_list = ['All'] + list(df['Region'].unique())
 selected_region = st.sidebar.selectbox("Select Region", region_list, key="reg_filter")
 
 data = df.copy()
 if selected_region != 'All':
     data = data[data['Region'] == selected_region]
+
 
 # --- TABS NAVIGATION ---
 tab_home, tab_desc, tab_diag, tab_persp, tab_pred = st.tabs([
