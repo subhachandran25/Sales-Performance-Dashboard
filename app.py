@@ -145,6 +145,18 @@ est_rev = filtered_df['Deals_Closed'].sum() * 1000
 col2.metric("Estimated Pipeline Value", f"${est_rev:,}")
 
 # Radar Chart for a selected Rep
+# Ensure this block is properly aligned
+st.subheader("Radar Analysis")
+
+# Make sure there are no extra spaces before 'rep_name'
+# It should be aligned with other st. commands in this block
+rep_name = st.selectbox("Select Rep for Radar Analysis", data['Sales_Rep'].unique(), key="radar_select")
+
+# If this is inside an 'if' block, it should look like this:
+if st.checkbox("Show Radar Chart"):
+    # This line MUST be indented by 4 spaces relative to the 'if'
+    rep_data = data[data['Sales_Rep'] == rep_name]
+    st.write(rep_data)
 rep_name = st.selectbox("Select Rep for Radar Analysis", data['Sales_Rep_Name'].unique())
 rep_data = data[data['Sales_Rep_Name'] == rep_name].iloc[0]
 
