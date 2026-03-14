@@ -13,17 +13,7 @@ def load_data():
 df = load_data()
 
 # --- SIDEBAR FILTERS ---
-# --- SIDEBAR FILTERS ---
-st.sidebar.header("Global Filters")
-region_list = ['All'] + list(df['Region'].unique())
-selected_region = st.sidebar.selectbox("Select Region", region_list, key="reg_filter")
 
-data = df.copy()
-if selected_region != 'All':
-    data = data[data['Region'] == selected_region]
-
-# --- ADD THIS LINE TO SEE YOUR COLUMN NAMES ---
-st.write("Current Columns in Data:", data.columns.tolist())
 st.sidebar.header("Global Filters")
 region_list = ['All'] + list(df['Region'].unique())
 selected_region = st.sidebar.selectbox("Select Region", region_list, key="reg_filter")
