@@ -2,10 +2,9 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+import numpy as np
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.linear_model import LinearRegression
-import numpy as np
-
 st.set_page_config(layout="wide", page_title="Sales Intelligence Pro")
 
 # Load Data
