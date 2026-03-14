@@ -48,7 +48,7 @@ with tab_home:
     col4, col5, col6 = st.columns(3)
     col4.plotly_chart(px.pie(data, names='Region', values='Total_Revenue', title="Revenue Share"), use_container_width=True)
         # Pre-aggregate the data to ensure one row per Sales_Manager
-    df_stacked = data.groupby(['Sales_Manager', 'Region'])['Deals_Closed'].sum().reset_index()
+   df_stacked = data.groupby(['Sales_Manager_Name', 'Region'])['Deals_Closed'].sum().reset_index()
     
     # Now use the aggregated dataframe for the chart
     fig_stacked = px.bar(df_stacked, x='Sales_Manager', y='Deals_Closed', 
