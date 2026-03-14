@@ -14,18 +14,23 @@ df = load_data()
 
 
 # --- SIDEBAR FILTERS ---
-st.sidebar.header("Hierarchy Drill-Down")
-region = st.sidebar.selectbox("Region", ["All"] + list(df['Region'].unique()))
-data = df if region == "All" else df[df['Region'] == region]
 
-auh = st.sidebar.selectbox("Area Head", ["All"] + list(data['AUH_Name'].unique()))
-if auh != "All": data = data[data['AUH_Name'] == auh]
 
-sm = st.sidebar.selectbox("Senior Manager", ["All"] + list(data['Senior_Manager_Name'].unique()))
-if sm != "All": data = data[data['Senior_Manager_Name'] == sm]
+st.title("📊 Sales Diagnostic & Predictive Dashboard")
 
-mgr = st.sidebar.selectbox("Sales Manager", ["All"] + list(data['Sales_Manager_Name'].unique()))
-if mgr != "All": data = data[data['Sales_Manager_Name'] == mgr]
+# --- DYNAMIC FILTERS ---
+# Add 'All' to every filter
+region_list = ['All'] + list(df['Region'].unique())
+selected_region = st.sidebar.selectbox("Region", region_list, key="reg")
+
+# Filter logic
+filtered_df = df.copy()
+if selected_region != 'All':
+    filtered_df = filtered_df[filtered_df['Region'] == selected_region]
+
+
+
+
 
 # --- HOME PAGE: SUMMARY ---
 st.title("📊 India Sales Performance Dashboard")
@@ -61,6 +66,7 @@ with tab1:
 
 with tab2:
     st.header("Perspective & Benchmarks")
+    
     # Radar Chart
     rep = st.selectbox("Select Rep for Radar", data['Sales_Rep_Name'].unique())
     r_data = data[data['Sales_Rep_Name'] == rep].iloc[0]
@@ -124,6 +130,28 @@ with tab1:
 
 with tab2:
     st.header("Diagnostic: Radar & Heatmap")
+
+# --- REVENUE WATERFALL CHART ---
+st.subheader("Revenue Waterfall Analysis")
+
+    # --- LEAD UTILIZATION CHART ---
+st.subheader("Lead Utilization Performance")
+# Calculate utilization: (Qualified / New Leads) * 100
+fig_lead = px.bar(filtered_df.groupby('Sales_Manager')['Qualified'].sum().reset_index(), 
+                 x='Sales_Manager', y='Qualified', title="Leads Qualified per Manager")
+st.plotly_chart(fig_lead, use_container_width=True)
+
+# --- PREDICTIVE/DIAGNOSTIC METRICS ---
+st.subheader("Diagnostic Metrics")
+col1, col2 = st.columns(2)
+# Diagnostic: Disqualification Rate
+disqual_rate = (filtered_df['Disqualified'].sum() / filtered_df['New_Leads'].sum()) * 100
+col1.metric("Disqualification Rate", f"{disqual_rate:.1f}%")
+
+# Predictive: Estimated Revenue (Assuming avg deal value of 1000)
+est_rev = filtered_df['Deals_Closed'].sum() * 1000
+col2.metric("Estimated Pipeline Value", f"${est_rev:,}")
+
     # Radar Chart for a selected Rep
     rep_name = st.selectbox("Select Rep for Radar Analysis", data['Sales_Rep_Name'].unique())
     rep_data = data[data['Sales_Rep_Name'] == rep_name].iloc[0]
