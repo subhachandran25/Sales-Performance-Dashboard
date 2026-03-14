@@ -102,7 +102,8 @@ else:
     data = df[df['Region'] == selected_region]
 
 # Hierarchy Drill-Down
-auh = st.sidebar.selectbox("Area Head", ['All'] + list(data['AUH_Name'].unique()))
+# Add key="auh_unique_key" to the end of the line
+auh = st.sidebar.selectbox("Area Head", ['All'] + list(data['AUH_Name'].unique()), key="auh_unique_key")
 if auh != 'All': data = data[data['AUH_Name'] == auh]
 
 # --- TABS ---
