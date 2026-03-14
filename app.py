@@ -59,7 +59,8 @@ with tab2:
     st.plotly_chart(fig_heat, use_container_width=True)
     
     st.subheader("Talk Time vs Revenue")
-    fig_scatter = px.scatter(filtered_df, x='Call_Time_Mins', y='Total_Revenue', color='Deals_Closed', trendline="ols")
+  # Remove trendline="ols"
+    fig_scatter = px.scatter(filtered_df, x='Call_Time_Mins', y='Total_Revenue', color='Deals_Closed')
     st.plotly_chart(fig_scatter, use_container_width=True)
 
 with tab3:
