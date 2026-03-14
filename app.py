@@ -4,7 +4,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from sklearn.tree import DecisionTreeRegressor
 
-st.set_page_config(layout="wide")
+st.set_page_config(layout="wide", page_title="India Sales Intelligence")
 
 @st.cache_data
 def load_data():
@@ -12,80 +12,80 @@ def load_data():
 
 df = load_data()
 
-# --- DEBUGGING: PRINT COLUMN NAMES ---
-st.write("### Debug: Your CSV Column Names are:")
-st.write(df.columns.tolist())
-# -------------------------------------
-
-# Sidebar Filters
+# --- SIDEBAR FILTERS ---
+st.sidebar.header("Dashboard Filters")
 region_list = ['All'] + list(df['Region'].unique())
 selected_region = st.sidebar.selectbox("Select Region", region_list, key="reg_filter")
 
+# Filter logic
 data = df.copy()
 if selected_region != 'All':
     data = data[data['Region'] == selected_region]
 
+auh_list = ['All'] + list(data['AUH_Name'].unique())
+selected_auh = st.sidebar.selectbox("Area Head", auh_list, key="auh_filter")
+if selected_auh != 'All':
+    data = data[data['AUH_Name'] == selected_auh]
 
-# --- TABS NAVIGATION ---
-tab_home, tab_desc, tab_diag, tab_persp, tab_pred = st.tabs([
-    "🏠 Home", "📊 Descriptive", "🔍 Diagnostic", "🎯 Perspective", "🔮 Predictive"
-])
+# --- MAIN DASHBOARD ---
+st.title("📊 Sales Diagnostic & Predictive Dashboard")
 
-# --- HOME PAGE ---
-with tab_home:
-    st.title("Executive Summary")
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Revenue", f"₹{data['Total_Revenue'].sum():,.0f}")
-    c2.metric("Deals", data['Deals_Closed'].sum())
-    c3.metric("Avg Talk", f"{data['Call_Time_Mins'].mean():.1f}m")
-    c4.metric("Conversion", f"{(data['Converted'].sum()/data['New_Leads'].sum())*100:.1f}%")
-    
-    col1, col2, col3 = st.columns(3)
-    col1.plotly_chart(px.bar(data, x='Sales_Rep_Name', y=['Calls_Dialed', 'Converted'], title="Dialed vs Connected"), use_container_width=True)
-    col2.plotly_chart(px.histogram(data, x='Call_Time_Mins', title="Talk Time Histogram"), use_container_width=True)
-    col3.plotly_chart(px.funnel(data, x='New_Leads', y='Deals_Closed', title="Conversion Funnel"), use_container_width=True)
-    
-    col4, col5, col6 = st.columns(3)
-    col4.plotly_chart(px.pie(data, names='Region', values='Total_Revenue', title="Revenue Share"), use_container_width=True)
-    
-    # --- FIXED STACKED BAR CHART ---
-    df_stacked = data.groupby(['Sales_Manager_Name', 'Region'])['Deals_Closed'].sum().reset_index()
-    fig_stacked = px.bar(df_stacked, x='Sales_Manager_Name', y='Deals_Closed', color='Region', title="Deals Closed (Stacked)", barmode='stack')
-    col5.plotly_chart(fig_stacked, use_container_width=True)
-    
-    col6.plotly_chart(px.line(data, x='Sales_Rep_Name', y='Total_Revenue', title="Revenue Trend"), use_container_width=True)
+# Summary Metrics
+c1, c2, c3, c4 = st.columns(4)
+c1.metric("Total Revenue", f"₹{data['Total_Revenue'].sum():,.0f}")
+c2.metric("Total Deals", data['Deals_Closed'].sum())
+c3.metric("Avg Talk Time", f"{data['Call_Time_Mins'].mean():.1f}m")
+c4.metric("Conversion Rate", f"{(data['Converted'].sum()/data['New_Leads'].sum())*100:.1f}%")
 
-# --- DESCRIPTIVE PAGE ---
-with tab_desc:
-    st.header("Descriptive Analytics")
-    c1, c2 = st.columns(2)
-    c1.plotly_chart(px.bar(data, x='Sales_Rep_Name', y='Call_Time_Mins', title="Talk Time per Rep"), use_container_width=True)
-    c2.plotly_chart(px.bar(data, x='Sales_Rep_Name', y=['Calls_Dialed', 'Converted'], title="Dialed vs Connected"), use_container_width=True)
-    st.dataframe(data.describe()) # KPI Table
+# --- TABS ---
+tab1, tab2, tab3 = st.tabs(["Descriptive & Diagnostic", "Perspective & Benchmarks", "Predictive & Prescriptive"])
 
-# --- DIAGNOSTIC PAGE ---
-with tab_diag:
-    st.header("Diagnostic Analysis")
+with tab1:
+    st.header("Descriptive & Diagnostic Analysis")
     col1, col2 = st.columns(2)
-    col1.plotly_chart(px.bar(data.sort_values('Total_Revenue', ascending=False), x='Sales_Rep_Name', y='Total_Revenue', title="Pareto Analysis"), use_container_width=True)
-    col2.plotly_chart(px.box(data, y='Call_Time_Mins', title="Box Plot: Talk Time"), use_container_width=True)
-    st.plotly_chart(px.imshow(data.select_dtypes(include='number').corr(), title="Performance Heatmap"), use_container_width=True)
+    
+    # Pareto Chart
+    rep_rev = data.groupby('Sales_Rep_Name')['Total_Revenue'].sum().sort_values(ascending=False).reset_index()
+    col1.plotly_chart(px.bar(rep_rev.head(10), x='Sales_Rep_Name', y='Total_Revenue', title="Pareto: Top 10 Revenue Drivers"), use_container_width=True)
+    
+    # Box Plot
+    col2.plotly_chart(px.box(data, y="Call_Time_Mins", title="Talk Time Outlier Detection"), use_container_width=True)
+    
+    # Funnel
+    col1.plotly_chart(px.funnel(data.melt(value_vars=['Calls_Dialed', 'Converted', 'Deals_Closed']), x='value', y='variable', title="Conversion Funnel"), use_container_width=True)
+    
+    # Heatmap
+    col2.plotly_chart(px.imshow(data[['Calls_Dialed', 'Call_Time_Mins', 'Deals_Closed', 'Total_Revenue']].corr(), text_auto=True, title="Correlation Heatmap"), use_container_width=True)
 
-# --- PERSPECTIVE PAGE ---
-with tab_persp:
+with tab2:
     st.header("Perspective & Benchmarks")
-    rep = st.selectbox("Select Rep", data['Sales_Rep_Name'].unique(), key="persp_rep")
+    
+    # Radar Chart
+    rep = st.selectbox("Select Rep for Radar", data['Sales_Rep_Name'].unique(), key="radar_persp")
     r_data = data[data['Sales_Rep_Name'] == rep].iloc[0]
-    st.plotly_chart(px.line_polar(r=[r_data['Calls_Dialed'], r_data['Call_Time_Mins'], r_data['Deals_Closed']], theta=['Calls', 'TalkTime', 'Closures'], line_close=True), use_container_width=True)
-    st.plotly_chart(px.area(data, x='Sales_Rep_Name', y='Total_Revenue', title="Stacked Area Revenue"), use_container_width=True)
+    st.plotly_chart(px.line_polar(r=[r_data['Calls_Dialed'], r_data['Call_Time_Mins'], r_data['Deals_Closed']], theta=['Calls', 'TalkTime', 'Closures'], line_close=True))
+    
+    # Waterfall
+    fig_water = go.Figure(go.Waterfall(x=["New", "Qualified", "Converted", "Revenue"], y=[100, 80, 40, data['Total_Revenue'].sum()]))
+    st.plotly_chart(fig_water)
 
-# --- PREDICTIVE PAGE ---
-with tab_pred:
+with tab3:
     st.header("Predictive & Prescriptive")
+    
+    # Regression
+    st.plotly_chart(px.scatter(data, x='Call_Time_Mins', y='Total_Revenue', trendline="ols", title="Revenue vs Talk Time Regression"))
+    
+    # Decision Tree
     X = data[['Calls_Dialed', 'Call_Time_Mins', 'Converted']]
     y = data['Total_Revenue']
     model = DecisionTreeRegressor().fit(X, y)
-    st.plotly_chart(px.scatter(data, x='Call_Time_Mins', y='Total_Revenue', trendline="ols", title="Regression Analysis"), use_container_width=True)
-    st.bar_chart(pd.DataFrame({'Importance': model.feature_importances_}, index=X.columns))
-    inc = st.slider("Scenario: Increase Calls by %", 0, 50, 10)
-    st.metric("Projected Revenue", f"₹{data['Total_Revenue'].sum() * (1 + inc/100):,.0f}")
+    imp = pd.DataFrame({'Feature': X.columns, 'Importance': model.feature_importances_})
+    st.bar_chart(imp.set_index('Feature'))
+    
+    # Scenario
+    inc = st.slider("Increase Dialed Calls by %", 0, 50, 10)
+    st.write(f"Projected Revenue Increase: ₹{(data['Total_Revenue'].sum() * (inc/100)):,.0f}")
+
+    # Lead Utilization
+    fig_lead = px.bar(data.groupby('Sales_Manager_Name')['Qualified'].sum().reset_index(), x='Sales_Manager_Name', y='Qualified', title="Leads Qualified per Manager")
+    st.plotly_chart(fig_lead)
